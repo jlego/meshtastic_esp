@@ -1,0 +1,2 @@
+source /Volumes/disk1t/esp/meshtastic_firmware/build/gdbinit/symbols
+source /Volumes/disk1t/esp/meshtastic_firmware/build/gdbinit/connect

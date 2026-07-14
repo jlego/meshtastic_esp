@@ -1,0 +1,53 @@
+Command: cmake -G Ninja -DPYTHON_DEPS_CHECKED=1 -DPYTHON=/Users/ronghuiyu/.espressif/python_env/idf5.5_py3.10_env/bin/python3 -DESP_PLATFORM=1 -DIDF_TARGET=esp32s3 -DCCACHE_ENABLE=1 /Volumes/disk1t/esp/meshtastic_firmware
+info: Choice BOOTLOADER_LOG_LEVEL has multiple active selections. The last one will be used: BOOTLOADER_LOG_LEVEL_ERROR .
+CMake Warning at /Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/project_include.cmake:37 (message):
+  Partition table CSV file
+  /Volumes/disk1t/esp/meshtastic_firmware/partitions.csv not found.  Change
+  custom partition CSV path in menuconfig.
+Call Stack (most recent call first):
+  /Volumes/disk1t/esp/v5.5/esp-idf/tools/cmake/build.cmake:467 (include)
+  /Volumes/disk1t/esp/v5.5/esp-idf/tools/cmake/build.cmake:718 (__build_process_project_includes)
+  /Volumes/disk1t/esp/v5.5/esp-idf/tools/cmake/project.cmake:740 (idf_build_process)
+  CMakeLists.txt:3 (project)
+
+
+Traceback (most recent call last):
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 411, in <module>
+    main()
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 380, in main
+    target = ParttoolTarget(**target_args)
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 95, in __init__
+    with open(partition_table_file, 'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/disk1t/esp/meshtastic_firmware/partitions.csv'
+Traceback (most recent call last):
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 411, in <module>
+    main()
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 380, in main
+    target = ParttoolTarget(**target_args)
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 95, in __init__
+    with open(partition_table_file, 'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/disk1t/esp/meshtastic_firmware/partitions.csv'
+Traceback (most recent call last):
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 411, in <module>
+    main()
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 380, in main
+    target = ParttoolTarget(**target_args)
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 95, in __init__
+    with open(partition_table_file, 'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/disk1t/esp/meshtastic_firmware/partitions.csv'
+Traceback (most recent call last):
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 411, in <module>
+    main()
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 380, in main
+    target = ParttoolTarget(**target_args)
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 95, in __init__
+    with open(partition_table_file, 'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/disk1t/esp/meshtastic_firmware/partitions.csv'
+Traceback (most recent call last):
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 411, in <module>
+    main()
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 380, in main
+    target = ParttoolTarget(**target_args)
+  File "/Volumes/disk1t/esp/v5.5/esp-idf/components/partition_table/parttool.py", line 95, in __init__
+    with open(partition_table_file, 'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/disk1t/esp/meshtastic_firmware/partitions.csv'
