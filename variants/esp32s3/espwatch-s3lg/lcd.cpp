@@ -474,6 +474,7 @@ void LCD_Fill_hv(u16 sx, u16 sy, u16 ex, u16 ey, u16 color) {
 }
 
 void LCD_PushImage(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t *data, uint32_t byte_len) {
+	Serial.printf("LCD_PushImage: x1=%d y1=%d x2=%d y2=%d len=%d\n", x1, y1, x2, y2, byte_len);
 	LCD_SetWindows(x1, y1, x2, y2);
 	uint32_t yield_counter = 0;
 	uint8_t txbuf[2];

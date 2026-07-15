@@ -19,6 +19,16 @@
 #include "sleep.h"
 #include "target_specific.h"
 
+#if HAS_TFT
+#include "graphics/DeviceScreen.h"
+extern DeviceScreen *deviceScreen;
+// Forward declaration for LVGL
+#include <lvgl.h>
+#ifdef ESPWATCH_S3LG
+#include "lcd.h"
+#endif
+#endif
+
 #if HAS_WIFI && !defined(ARCH_PORTDUINO) || defined(MESHTASTIC_EXCLUDE_WIFI)
 #include "mesh/wifi/WiFiAPClient.h"
 #endif
@@ -270,8 +280,23 @@ static void powerExit()
 static void onEnter()
 {
     LOG_INFO("PowerFSM: ON enter (screen on)");
-    if (screen)
+#if HAS_TFT
+    if (deviceScreen) {
+        LOG_INFO("PowerFSM: waking up MUI display");
+#ifdef ESPWATCH_S3LG
+        LCD_Wakeup();
+        ledcWrite(LCD_LED, BRIGHTNESS_DEFAULT);
+        LOG_INFO("PowerFSM: LCD_Wakeup done, brightness=%d", BRIGHTNESS_DEFAULT);
+#endif
+        lv_disp_trig_activity(NULL);
+    } else
+#endif
+        if (screen) {
+        LOG_INFO("PowerFSM: calling screen->setOn(true)");
         screen->setOn(true);
+    } else {
+        LOG_WARN("PowerFSM: screen is NULL!");
+    }
     setBluetoothEnable(true);
 }
 

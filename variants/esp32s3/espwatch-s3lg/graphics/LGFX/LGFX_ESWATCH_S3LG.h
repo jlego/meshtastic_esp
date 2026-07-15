@@ -4,6 +4,10 @@
 #include <LovyanGFX.hpp>
 #include <SPI.h>
 #include <esp_task_wdt.h>
+#include "lcd.h"
+
+// Declare external vspi from lcd.cpp
+extern SPIClass* vspi;
 
 #ifndef SPI_FREQUENCY
 #define SPI_FREQUENCY 40000000
@@ -27,12 +31,12 @@ public:
     {
         pinMode(_cs_pin, OUTPUT);
         GPIO.out_w1ts = _cs_mask;
-        _initialized = false;
+        _initialized = true;
         _yield_counter = 0;
         return true;
     }
 
-    void release(void) override { _spi.endTransaction(); _spi.end(); }
+    void release(void) override {}
     void beginTransaction(void) override {}
     void endTransaction(void) override {}
     void wait(void) override {}
@@ -150,7 +154,6 @@ public:
     uint32_t getClock(void) const override { return SPI_FREQUENCY; }
 
 private:
-    SPIClass _spi = SPIClass(FSPI);
     int _cs_pin = -1;
     uint32_t _cs_mask = 0;
     uint32_t _yield_counter = 0;
@@ -161,13 +164,14 @@ private:
     // 所有SPI数据发送的唯一入口点
     // 9-bit SPI编码: DC位(1bit) + 数据(8bit) → SPI发送2字节(16bit)
     // 内部嵌入yield计数器 - 每128字节数据让出一次CPU避免WDT超时
+    // 使用lcd.cpp的vspi实例，避免SPI总线冲突
     // ═════════════════════════════════════════════════════════════
     inline void _spi9Write(uint8_t data, uint8_t dc)
     {
         uint8_t txbuf[2];
         txbuf[0] = (uint8_t)((dc << 7) | (data >> 1)) & 0xFF;
         txbuf[1] = (uint8_t)(data << 7) & 0xFF;
-        _spi.transferBytes(txbuf, NULL, 2);
+        vspi->transferBytes(txbuf, NULL, 2);
         _yield_counter++;
         // 每128次调用让出一次CPU
         // 40MHz SPI: 128×16bits/40MHz = 51µs + overhead ≈ 1-3ms
@@ -202,6 +206,8 @@ public:
     {
         _panel_instance.setBus(&_bus_instance);
         _bus_instance.configCS(7);
+        // Initialize the bus early so _initialized is true before LGFX uses it
+        _bus_instance.init();
 
         {
             auto cfg = _panel_instance.config();

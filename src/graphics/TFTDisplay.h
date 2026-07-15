@@ -38,6 +38,9 @@ class TFTDisplay : public OLEDDisplay
     // Functions for changing display brightness
     void setDisplayBrightness(uint8_t);
 
+    // Wake up display from sleep (for ESPWATCH_S3LG and similar TFTs)
+    void wakeup();
+
     /**
      * shim to make the abstraction happy
      *

@@ -580,8 +580,11 @@ void Screen::doDeepSleep()
 
 void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
 {
-    if (!useDisplay)
+    LOG_DEBUG("Screen::handleSetOn(on=%d, useDisplay=%d, screenOn=%d)", on, useDisplay, screenOn);
+    if (!useDisplay) {
+        LOG_DEBUG("Screen::handleSetOn: useDisplay is false, returning");
         return;
+    }
 
     if (on != screenOn) {
         if (on) {
@@ -601,6 +604,10 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
             digitalWrite(SCREEN_12V_ENABLE, HIGH);
 #endif
             delay(100);
+#elif defined(ESPWATCH_S3LG)
+            LOG_DEBUG("Screen::handleSetOn: ESPWATCH_S3LG full LCD re-init");
+            static_cast<TFTDisplay *>(dispdev)->wakeup();
+            delay(100);
 #endif
 #if !ARCH_PORTDUINO
 #if defined(USE_ST7789) && defined(VTFT_CTRL)
@@ -608,6 +615,7 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
             pinMode(VTFT_CTRL, OUTPUT);
             digitalWrite(VTFT_CTRL, LOW);
 #endif
+            LOG_DEBUG("Screen::handleSetOn: calling dispdev->displayOn()");
             dispdev->displayOn();
 #endif
 
@@ -621,6 +629,7 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
 
 #if defined(ST7789_CS) &&                                                                                   \
     !defined(M5STACK)
+            LOG_DEBUG("Screen::handleSetOn: calling setDisplayBrightness(%d)", brightness);
             static_cast<TFTDisplay *>(dispdev)->setDisplayBrightness(brightness);
 #endif
 
@@ -649,6 +658,7 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
             enabled = true;
             setInterval(0); // Draw ASAP
             runASAP = true;
+            LOG_DEBUG("Screen::handleSetOn: screen turned on successfully");
         } else {
             powerMon->clearState(meshtastic_PowerMon_State_Screen_On);
 #ifdef USE_EINK
@@ -936,7 +946,9 @@ void Screen::setOn(bool on, FrameCallback einkScreensaver)
     } else {
         enabled = true;
         setInterval(0);
-        enqueueCmd(ScreenCmd{.cmd = Cmd::SET_ON});
+        // Handle on commands immediately too - otherwise if runOnce() isn't called soon enough,
+        // the screen won't turn on in a timely fashion.
+        handleSetOn(true, einkScreensaver);
     }
 }
 

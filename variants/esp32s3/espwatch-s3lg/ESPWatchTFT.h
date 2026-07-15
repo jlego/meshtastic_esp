@@ -1,5 +1,6 @@
 #pragma once
 #include "lcd.h"
+#include "configuration.h"
 
 #ifndef TFT_BLACK
 #define TFT_BLACK 0x0000
@@ -45,12 +46,34 @@ class ESPWatchTFT {
         LCD_set_direction(rotation);
     }
 
-    void wakeup() {}
-    void sleep() {}
-    void powerSaveOn() {}
-    void powerSaveOff() {}
-    void displayOn() {}
-    void displayOff() {}
+    void wakeup() {
+        LOG_DEBUG("ESPWatchTFT::wakeup() - LCD re-init");
+        LCD_Init();
+        LOG_DEBUG("ESPWatchTFT::wakeup() done, brightness=%d", BRIGHTNESS_DEFAULT);
+    }
+    void sleep() {
+        LOG_DEBUG("ESPWatchTFT::sleep()");
+        ledcWrite(LCD_LED, 0);
+        LCD_Sleep();
+    }
+    void powerSaveOn() {
+        LOG_DEBUG("ESPWatchTFT::powerSaveOn()");
+        ledcWrite(LCD_LED, 0);
+    }
+    void powerSaveOff() {
+        LOG_DEBUG("ESPWatchTFT::powerSaveOff()");
+        ledcWrite(LCD_LED, BRIGHTNESS_DEFAULT);
+    }
+    void displayOn() {
+        LOG_DEBUG("ESPWatchTFT::displayOn()");
+        LCD_Wakeup();
+        ledcWrite(LCD_LED, BRIGHTNESS_DEFAULT);
+    }
+    void displayOff() {
+        LOG_DEBUG("ESPWatchTFT::displayOff()");
+        ledcWrite(LCD_LED, 0);
+        LCD_Sleep();
+    }
     void clear() { LCD_Clear(BLACK); }
     void setSwapBytes(bool) {}
 
