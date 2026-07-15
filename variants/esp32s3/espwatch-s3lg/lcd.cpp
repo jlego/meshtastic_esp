@@ -27,6 +27,7 @@ u8 SPI_WriteByte(int SPIx, u8 Byte, u8 cmd) {
  * @retvalue   :None
 ******************************************************************************/
 void LCD_WR_REG(u8 data) {
+	// Serial.printf("[LCD] WR_REG: 0x%02X\n", data);
 	LCD_CS_CLR();
 	// LCD_DC_CLR;
 	SPI_WriteByte(SPI1, data, 0);
@@ -260,7 +261,7 @@ void LCD_Init(void) {
 	LCD_set_direction(USE_HORIZONTAL);
 	ledcAttach(LCD_LED, 5000, 8);
 	ledcWrite(LCD_LED, BRIGHTNESS_DEFAULT);
-	// LCD_Clear(WHITE);
+	LCD_Clear(WHITE);
 }
 
 /*****************************************************************************
@@ -274,6 +275,7 @@ void LCD_Init(void) {
  * @retvalue   :None
 ******************************************************************************/
 void LCD_SetWindows(u16 xStar, u16 yStar, u16 xEnd, u16 yEnd) {
+	// Serial.printf("[LCD] SetWindows: x=%d-%d, y=%d-%d\n", xStar, xEnd, yStar, yEnd);
 	LCD_WR_REG(lcddev.setxcmd);
 	LCD_WR_DATA((xStar + lcddev.xoffset) >> 8);
 	LCD_WR_DATA(xStar + lcddev.xoffset);
@@ -286,6 +288,7 @@ void LCD_SetWindows(u16 xStar, u16 yStar, u16 xEnd, u16 yEnd) {
 	LCD_WR_DATA((yEnd + lcddev.yoffset) >> 8);
 	LCD_WR_DATA(yEnd + lcddev.yoffset);
 
+	Serial.printf("[LCD] WriteRAM_Prepare (0x2C)\n");
 	LCD_WriteRAM_Prepare();
 }
 
@@ -474,10 +477,11 @@ void LCD_Fill_hv(u16 sx, u16 sy, u16 ex, u16 ey, u16 color) {
 }
 
 void LCD_PushImage(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t *data, uint32_t byte_len) {
-	Serial.printf("LCD_PushImage: x1=%d y1=%d x2=%d y2=%d len=%d\n", x1, y1, x2, y2, byte_len);
+	// Serial.printf("[LCD] PushImage: x=%d-%d, y=%d-%d, bytes=%d\n", x1, x2, y1, y2, byte_len);
 	LCD_SetWindows(x1, y1, x2, y2);
 	uint32_t yield_counter = 0;
 	uint8_t txbuf[2];
+	// Serial.printf("[LCD] Starting data transfer...\n");
 	for (uint32_t i = 0; i < byte_len; i++) {
 		LCD_CS_CLR();
 		txbuf[0] = (uint8_t)((1 << 7) | (data[i] >> 1)) & 0xFF;
@@ -490,15 +494,94 @@ void LCD_PushImage(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t *
 			vTaskDelay(1);
 		}
 	}
+	Serial.printf("[LCD] PushImage done!\n");
 }
 
 void LCD_Sleep(void) {
+	Serial.printf("[LCD] LCD_Sleep\n");
 	LCD_WR_REG(0x10);
 	delay_ms(120);
 }
 
 void LCD_Wakeup(void) {
-	LCD_WR_REG(0x11);
+	Serial.printf("[LCD] LCD_Wakeup start - full reinit\n");
+	
+	// Re-send all initialization commands (LCD may have lost register settings during sleep)
+	LCD_WR_REG(0x36);
+	LCD_WR_DATA(0x00);
+
+	LCD_WR_REG(0x3A);
+	LCD_WR_DATA(0x05);
+
+	LCD_WR_REG(0xB2);
+	LCD_WR_DATA(0x0C);
+	LCD_WR_DATA(0x0C);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x33);
+	LCD_WR_DATA(0x33);
+
+	LCD_WR_REG(0xB7);
+	LCD_WR_DATA(0x35);
+
+	LCD_WR_REG(0xBB);
+	LCD_WR_DATA(0x17);
+
+	LCD_WR_REG(0xC0);
+	LCD_WR_DATA(0x2C);
+
+	LCD_WR_REG(0xC2);
+	LCD_WR_DATA(0x01);
+
+	LCD_WR_REG(0xC3);
+	LCD_WR_DATA(0x12);
+
+	LCD_WR_REG(0xC4);
+	LCD_WR_DATA(0x20);
+
+	LCD_WR_REG(0xC6);
+	LCD_WR_DATA(0x0F);
+
+	LCD_WR_REG(0xD0);
+	LCD_WR_DATA(0xA4);
+	LCD_WR_DATA(0xA1);
+
+	LCD_WR_REG(0xE0);
+	LCD_WR_DATA(0xD0);
+	LCD_WR_DATA(0x04);
+	LCD_WR_DATA(0x0D);
+	LCD_WR_DATA(0x11);
+	LCD_WR_DATA(0x13);
+	LCD_WR_DATA(0x2B);
+	LCD_WR_DATA(0x3F);
+	LCD_WR_DATA(0x54);
+	LCD_WR_DATA(0x4C);
+	LCD_WR_DATA(0x18);
+	LCD_WR_DATA(0x0D);
+	LCD_WR_DATA(0x0B);
+	LCD_WR_DATA(0x1F);
+	LCD_WR_DATA(0x23);
+
+	LCD_WR_REG(0xE1);
+	LCD_WR_DATA(0xD0);
+	LCD_WR_DATA(0x04);
+	LCD_WR_DATA(0x0C);
+	LCD_WR_DATA(0x11);
+	LCD_WR_DATA(0x13);
+	LCD_WR_DATA(0x2C);
+	LCD_WR_DATA(0x3F);
+	LCD_WR_DATA(0x44);
+	LCD_WR_DATA(0x51);
+	LCD_WR_DATA(0x2F);
+	LCD_WR_DATA(0x1F);
+	LCD_WR_DATA(0x1F);
+	LCD_WR_DATA(0x20);
+	LCD_WR_DATA(0x23);
+
+	LCD_WR_REG(0x21);  // Display Inversion On
+	LCD_WR_REG(0x11);  // Sleep Out
 	delay_ms(120);
-	LCD_WR_REG(0x29);
+	LCD_WR_REG(0x29);  // Display ON
+	delay_ms(50);
+	
+	Serial.printf("[LCD] LCD_Wakeup done\n");
 }

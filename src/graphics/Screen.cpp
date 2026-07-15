@@ -2024,8 +2024,22 @@ int Screen::handleUIFrameEvent(const UIFrameEvent *event)
 int Screen::handleInputEvent(const InputEvent *event)
 {
     LOG_INPUT("Screen Input event %u! kb %u", event->inputEvent, event->kbchar);
+#if defined(ESPWATCH_S3LG)
+    // On single-button devices, process the press even when screen is off.
+    // PowerFSM is turning on the display in parallel, so we handle the
+    // navigation action (e.g. next frame) without requiring a second press.
+    if (!screenOn) {
+        handleSetOn(true);
+        setFastFramerate();
+        enabled = true;
+        setInterval(0);
+        runASAP = true;
+        // Now fall through to process the navigation event
+    }
+#else
     if (!screenOn)
         return 0;
+#endif
 
     // Handle text input notifications specially - pass input to virtual keyboard
     if (NotificationRenderer::current_notification_type == notificationTypeEnum::text_input) {

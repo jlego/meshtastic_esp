@@ -2,6 +2,9 @@
 #define BUTTON_PIN PIN_BUTTON1
 #define BUTTON_NEED_PULLUP 1   // ← 加在这里
 #define PIN_BUTTON2 45  // 电源键
+#ifndef INPUTDRIVER_BUTTON_TYPE
+#define INPUTDRIVER_BUTTON_TYPE BUTTON_PIN  // Enable LVGL button input driver for menu navigation
+#endif
 
 #define LED_PIN 4
 #define LED_STATE_ON 1

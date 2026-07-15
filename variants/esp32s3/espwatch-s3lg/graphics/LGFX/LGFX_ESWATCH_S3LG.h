@@ -111,6 +111,7 @@ public:
     //    → 直接按 buf 顺序发送即可，与 ST7789 期望的 big-endian 一致
     void writePixels(lgfx::pixelcopy_t *pc, uint32_t length) override
     {
+        Serial.printf("[LGFX] writePixels: length=%d\n", length);
         if (!_initialized) return;
         const uint32_t PIXELS_PER_BATCH = 256;
         uint8_t buf[PIXELS_PER_BATCH * 2];
@@ -126,6 +127,7 @@ public:
             }
             length -= n;
         }
+        Serial.printf("[LGFX] writePixels done\n");
     }
 
     // writeBytes - 命令/数据直接发送路径
@@ -136,6 +138,7 @@ public:
     void writeBytes(const uint8_t *data, uint32_t length, bool dc, bool use_dma) override
     {
         if (!_initialized) return;
+        Serial.printf("[LGFX] writeBytes: length=%d, dc=%d\n", length, dc);
         uint8_t dc_bit = dc ? 1 : 0;
         for (uint32_t i = 0; i < length; i++) {
             GPIO.out_w1tc = _cs_mask;

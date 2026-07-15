@@ -12,6 +12,7 @@
 #include "MeshService.h"
 #include "NodeDB.h"
 #include "PowerMon.h"
+#include "SPILock.h"
 #include "configuration.h"
 #include "graphics/Screen.h"
 #include "main.h"
@@ -21,6 +22,7 @@
 
 #if HAS_TFT
 #include "graphics/DeviceScreen.h"
+#include "graphics/driver/DisplayDriver.h"
 extern DeviceScreen *deviceScreen;
 // Forward declaration for LVGL
 #include <lvgl.h>
@@ -284,11 +286,28 @@ static void onEnter()
     if (deviceScreen) {
         LOG_INFO("PowerFSM: waking up MUI display");
 #ifdef ESPWATCH_S3LG
+        spiLock->lock();
         LCD_Wakeup();
         ledcWrite(LCD_LED, BRIGHTNESS_DEFAULT);
+        spiLock->unlock();
         LOG_INFO("PowerFSM: LCD_Wakeup done, brightness=%d", BRIGHTNESS_DEFAULT);
 #endif
-        lv_disp_trig_activity(NULL);
+        // Restore main screen by calling screenSaving(false) directly.
+        // This ensures LVGL loads main_screen, so subsequent flushes contain
+        // proper UI pixels instead of the black blank_screen.
+        auto *gui = deviceScreen->getGUI();
+        if (gui) {
+            auto *driver = gui->getDisplayDriver();
+            gui->screenSaving(false);
+            if (driver) {
+                driver->setPowersaving(false);
+            }
+            lv_disp_trig_activity(NULL);
+            LOG_INFO("PowerFSM: screenSaving(false) called, main screen restored");
+        } else {
+            lv_disp_trig_activity(NULL);
+            LOG_INFO("PowerFSM: LVGL activity triggered, waiting for MUI task_handler to redraw");
+        }
     } else
 #endif
         if (screen) {
