@@ -176,9 +176,8 @@ void InkHUD::MenuApplet::onForeground()
     SystemApplet::lockRequests = true;
     SystemApplet::handleInput = true;
 
-    // Begin the auto-close timeout
-    OSThread::setIntervalFromNow(MENU_TIMEOUT_SEC * 1000UL);
-    OSThread::enabled = true;
+    // Menu timeout disabled — menu will not auto-close
+    OSThread::disable();
 
     freeTextMode = false;
 
@@ -249,13 +248,7 @@ void InkHUD::MenuApplet::show(Tile *t)
 // By exiting the menu, we prevent users mistakenly believing that the data will update.
 int32_t InkHUD::MenuApplet::runOnce()
 {
-    // runOnce's interval is pushed back when a button is pressed
-    // If we do actually run, it means no button input occurred within MENU_TIMEOUT_SEC,
-    // so we close the menu.
-    showPage(EXIT);
-
-    // Timer should disable after firing
-    // This is redundant, as onBackground() will also disable
+    // Menu auto-close disabled
     return OSThread::disable();
 }
 
