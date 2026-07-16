@@ -12,24 +12,12 @@
 #include "MeshService.h"
 #include "NodeDB.h"
 #include "PowerMon.h"
-#include "SPILock.h"
 #include "configuration.h"
 #include "graphics/Screen.h"
 #include "main.h"
 #include "modules/StatusLEDModule.h"
 #include "sleep.h"
 #include "target_specific.h"
-
-#if HAS_TFT
-#include "graphics/DeviceScreen.h"
-#include "graphics/driver/DisplayDriver.h"
-extern DeviceScreen *deviceScreen;
-// Forward declaration for LVGL
-#include <lvgl.h>
-#ifdef ESPWATCH_S3LG
-#include "lcd.h"
-#endif
-#endif
 
 #if HAS_WIFI && !defined(ARCH_PORTDUINO) || defined(MESHTASTIC_EXCLUDE_WIFI)
 #include "mesh/wifi/WiFiAPClient.h"
@@ -282,40 +270,8 @@ static void powerExit()
 static void onEnter()
 {
     LOG_INFO("PowerFSM: ON enter (screen on)");
-#if HAS_TFT
-    if (deviceScreen) {
-        LOG_INFO("PowerFSM: waking up MUI display");
-#ifdef ESPWATCH_S3LG
-        spiLock->lock();
-        LCD_Wakeup();
-        ledcWrite(LCD_LED, BRIGHTNESS_DEFAULT);
-        spiLock->unlock();
-        LOG_INFO("PowerFSM: LCD_Wakeup done, brightness=%d", BRIGHTNESS_DEFAULT);
-#endif
-        // Restore main screen by calling screenSaving(false) directly.
-        // This ensures LVGL loads main_screen, so subsequent flushes contain
-        // proper UI pixels instead of the black blank_screen.
-        auto *gui = deviceScreen->getGUI();
-        if (gui) {
-            auto *driver = gui->getDisplayDriver();
-            gui->screenSaving(false);
-            if (driver) {
-                driver->setPowersaving(false);
-            }
-            lv_disp_trig_activity(NULL);
-            LOG_INFO("PowerFSM: screenSaving(false) called, main screen restored");
-        } else {
-            lv_disp_trig_activity(NULL);
-            LOG_INFO("PowerFSM: LVGL activity triggered, waiting for MUI task_handler to redraw");
-        }
-    } else
-#endif
-        if (screen) {
-        LOG_INFO("PowerFSM: calling screen->setOn(true)");
+    if (screen)
         screen->setOn(true);
-    } else {
-        LOG_WARN("PowerFSM: screen is NULL!");
-    }
     setBluetoothEnable(true);
 }
 

@@ -1461,7 +1461,7 @@ void TFTDisplay::sendCommand(uint8_t com)
     // handle display on/off directly
     switch (com) {
     case DISPLAYON: {
-        LOG_DEBUG("TFTDisplay::sendCommand(DISPLAYON) called");
+        // LOG_DEBUG("Display on");
         backlightEnable->set(true);
 #if ARCH_PORTDUINO
         display(true);
@@ -1471,7 +1471,6 @@ void TFTDisplay::sendCommand(uint8_t com)
         tft->displayOn();
 #elif !defined(RAK14014) && !defined(M5STACK) && !defined(UNPHONE) && !defined(HELTEC_MESH_NODE_T096) &&                         \
     !defined(HELTEC_MESH_NODE_T1)
-        LOG_DEBUG("TFTDisplay::sendCommand: calling tft->wakeup() and tft->powerSaveOff()");
         tft->wakeup();
         tft->powerSaveOff();
 #endif
@@ -1484,17 +1483,15 @@ void TFTDisplay::sendCommand(uint8_t com)
 #endif
 #if defined(RAK14014) || defined(HELTEC_MESH_NODE_T096) || defined(HELTEC_MESH_NODE_T1)
 #elif defined(ESPWATCH_S3LG)
-        LOG_DEBUG("TFTDisplay::sendCommand: ESPWATCH_S3LG - setting brightness to %d", BRIGHTNESS_DEFAULT);
         tft->setBrightness(BRIGHTNESS_DEFAULT);
 #elif !defined(M5STACK) && !defined(ST7789_CS) &&                                                                                \
     !defined(HACKADAY_COMMUNICATOR) // T-Deck gets brightness set in Screen.cpp in the handleSetOn function
         tft->setBrightness(128);
 #endif
-        LOG_DEBUG("TFTDisplay::sendCommand(DISPLAYON) completed");
         break;
     }
     case DISPLAYOFF: {
-        LOG_DEBUG("TFTDisplay::sendCommand(DISPLAYOFF) called");
+        // LOG_DEBUG("Display off");
         backlightEnable->set(false);
 #if ARCH_PORTDUINO
         tft->clear();
@@ -1504,7 +1501,6 @@ void TFTDisplay::sendCommand(uint8_t com)
         tft->displayOff();
 #elif !defined(RAK14014) && !defined(M5STACK) && !defined(UNPHONE) && !defined(HELTEC_MESH_NODE_T096) &&                         \
     !defined(HELTEC_MESH_NODE_T1)
-        LOG_DEBUG("TFTDisplay::sendCommand: calling tft->sleep() and tft->powerSaveOn()");
         tft->sleep();
         tft->powerSaveOn();
 #endif
@@ -1517,12 +1513,10 @@ void TFTDisplay::sendCommand(uint8_t com)
 #endif
 #if defined(RAK14014) || defined(HELTEC_MESH_NODE_T096) || defined(HELTEC_MESH_NODE_T1)
 #elif defined(ESPWATCH_S3LG)
-        LOG_DEBUG("TFTDisplay::sendCommand: ESPWATCH_S3LG - setting brightness to 0");
         tft->setBrightness(0);
 #elif !defined(M5STACK) && !defined(HACKADAY_COMMUNICATOR)
         tft->setBrightness(0);
 #endif
-        LOG_DEBUG("TFTDisplay::sendCommand(DISPLAYOFF) completed");
         break;
     }
     default:
@@ -1658,18 +1652,6 @@ bool TFTDisplay::connect()
         }
     }
     return true;
-}
-
-// Wake up display from sleep (for ESPWATCH_S3LG and similar TFTs)
-void TFTDisplay::wakeup()
-{
-    LOG_DEBUG("TFTDisplay::wakeup() called");
-#if defined(ESPWATCH_S3LG)
-    if (tft) {
-        tft->wakeup();
-        backlightEnable->set(true);
-    }
-#endif
 }
 
 #endif // USE_TFTDISPLAY

@@ -513,7 +513,8 @@ Screen::Screen(ScanI2C::DeviceAddress address, meshtastic_Config_DisplayConfig_O
         LOG_INFO("SSD1306 init success");
     }
 #elif defined(ST7735_CS) || defined(ILI9341_DRIVER) || defined(ILI9342_DRIVER) || defined(ST7701_CS) || defined(ST7789_CS) ||    \
-    defined(RAK14014) || defined(HX8357_CS) || defined(ILI9488_CS) || defined(ST7796_CS) || defined(HACKADAY_COMMUNICATOR)
+    defined(RAK14014) || defined(HX8357_CS) || defined(ILI9488_CS) || defined(ST7796_CS) || defined(HACKADAY_COMMUNICATOR) ||    \
+    defined(ESPWATCH_S3LG)
     dispdev = new TFTDisplay(address.address, -1, -1, geometry,
                              (address.port == ScanI2C::I2CPort::WIRE1) ? HW_I2C::I2C_TWO : HW_I2C::I2C_ONE);
 #elif defined(USE_EINK) && !defined(USE_EINK_DYNAMICDISPLAY) && !defined(USE_EINK_PARALLELDISPLAY)
@@ -580,11 +581,8 @@ void Screen::doDeepSleep()
 
 void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
 {
-    LOG_DEBUG("Screen::handleSetOn(on=%d, useDisplay=%d, screenOn=%d)", on, useDisplay, screenOn);
-    if (!useDisplay) {
-        LOG_DEBUG("Screen::handleSetOn: useDisplay is false, returning");
+    if (!useDisplay)
         return;
-    }
 
     if (on != screenOn) {
         if (on) {
@@ -604,10 +602,6 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
             digitalWrite(SCREEN_12V_ENABLE, HIGH);
 #endif
             delay(100);
-#elif defined(ESPWATCH_S3LG)
-            LOG_DEBUG("Screen::handleSetOn: ESPWATCH_S3LG full LCD re-init");
-            static_cast<TFTDisplay *>(dispdev)->wakeup();
-            delay(100);
 #endif
 #if !ARCH_PORTDUINO
 #if defined(USE_ST7789) && defined(VTFT_CTRL)
@@ -615,7 +609,6 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
             pinMode(VTFT_CTRL, OUTPUT);
             digitalWrite(VTFT_CTRL, LOW);
 #endif
-            LOG_DEBUG("Screen::handleSetOn: calling dispdev->displayOn()");
             dispdev->displayOn();
 #endif
 
@@ -629,7 +622,6 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
 
 #if defined(ST7789_CS) &&                                                                                   \
     !defined(M5STACK)
-            LOG_DEBUG("Screen::handleSetOn: calling setDisplayBrightness(%d)", brightness);
             static_cast<TFTDisplay *>(dispdev)->setDisplayBrightness(brightness);
 #endif
 
@@ -658,7 +650,6 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
             enabled = true;
             setInterval(0); // Draw ASAP
             runASAP = true;
-            LOG_DEBUG("Screen::handleSetOn: screen turned on successfully");
         } else {
             powerMon->clearState(meshtastic_PowerMon_State_Screen_On);
 #ifdef USE_EINK
@@ -943,13 +934,8 @@ void Screen::setOn(bool on, FrameCallback einkScreensaver)
 #endif
         // We handle off commands immediately, because they might be called because the CPU is shutting down
         handleSetOn(false, einkScreensaver);
-    } else {
-        enabled = true;
-        setInterval(0);
-        // Handle on commands immediately too - otherwise if runOnce() isn't called soon enough,
-        // the screen won't turn on in a timely fashion.
-        handleSetOn(true, einkScreensaver);
-    }
+    } else
+        enqueueCmd(ScreenCmd{.cmd = Cmd::SET_ON});
 }
 
 void Screen::forceDisplay(bool forceUiUpdate)
@@ -1289,6 +1275,11 @@ void Screen::setFrames(FrameFocus focus)
         return;
     }
 
+#if defined(ESPWATCH_S3LG)
+    // Hide the home/device frame so the clock face becomes the first page
+    hiddenFrames.home = true;
+#endif
+
     uint8_t originalPosition = ui->getUiState()->currentFrame;
     uint8_t previousFrameCount = framesetInfo.frameCount;
     FramesetInfo fsi; // Location of specific frames, for applying focus parameter
@@ -1302,13 +1293,15 @@ void Screen::setFrames(FrameFocus focus)
 
     size_t numframes = 0;
 
-    // If we have a critical fault, show it first
+    // If we have a critical fault, show it first (skip on ESPWATCH_S3LG)
     fsi.positions.fault = numframes;
+#if !defined(ESPWATCH_S3LG)
     if (error_code) {
         normalFrames[numframes++] = NotificationRenderer::drawCriticalFaultFrame;
         indicatorIcons.push_back(icon_error);
         focus = FOCUS_FAULT; // Change our "focus" parameter, to ensure we show the fault frame
     }
+#endif
 
 #if defined(DISPLAY_CLOCK_FRAME)
     if (!hiddenFrames.clock) {
@@ -2024,22 +2017,8 @@ int Screen::handleUIFrameEvent(const UIFrameEvent *event)
 int Screen::handleInputEvent(const InputEvent *event)
 {
     LOG_INPUT("Screen Input event %u! kb %u", event->inputEvent, event->kbchar);
-#if defined(ESPWATCH_S3LG)
-    // On single-button devices, process the press even when screen is off.
-    // PowerFSM is turning on the display in parallel, so we handle the
-    // navigation action (e.g. next frame) without requiring a second press.
-    if (!screenOn) {
-        handleSetOn(true);
-        setFastFramerate();
-        enabled = true;
-        setInterval(0);
-        runASAP = true;
-        // Now fall through to process the navigation event
-    }
-#else
     if (!screenOn)
         return 0;
-#endif
 
     // Handle text input notifications specially - pass input to virtual keyboard
     if (NotificationRenderer::current_notification_type == notificationTypeEnum::text_input) {

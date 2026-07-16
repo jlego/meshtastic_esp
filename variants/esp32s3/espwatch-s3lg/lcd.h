@@ -9,6 +9,9 @@
 #include "soc/gpio_struct.h"
 #include "soc/io_mux_reg.h"
 
+// LCD SPI controller — defined in lcd.cpp, shared with ESPWatchTFT.h
+extern SPIClass lcdSPI;
+
 #define u8  char
 #define u16 int
 #define u32 long
@@ -116,8 +119,8 @@ extern u16  BACK_COLOR;
 #define	LCD_RST_SET	digitalWrite(LCD_RST,1)
 #define	LCD_RST_CLR	digitalWrite(LCD_RST,0)
 
-#define	LCD_CS_SET()	GPIO.out_w1ts = (1UL << LCD_CS)
-#define	LCD_CS_CLR()	GPIO.out_w1tc = (1UL << LCD_CS)
+#define	LCD_CS_SET()	digitalWrite(LCD_CS,1)
+#define	LCD_CS_CLR()	digitalWrite(LCD_CS,0)
 
 #define WHITE       0xFFFF
 #define BLACK      	0x0000

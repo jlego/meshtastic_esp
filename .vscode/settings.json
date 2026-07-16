@@ -1,26 +1,10 @@
 {
-  "idf.currentSetup": "/Volumes/disk1t/esp/v5.5/esp-idf",
-  "idf.openOcdConfigs": [
-    "board/esp32s3-builtin.cfg"
-  ],
-  "idf.customExtraVars": {
-    "OPENOCD_SCRIPTS": "/Users/ronghuiyu/.espressif/tools/openocd-esp32/v0.12.0-esp32-20230921/openocd-esp32/share/openocd/scripts",
-    "ESP_ROM_ELF_DIR": "/Users/ronghuiyu/.espressif/tools/esp-rom-elfs/20230320/",
-    "IDF_TARGET": "esp32s3"
-  },
-  "clangd.path": "/Users/ronghuiyu/.espressif/tools/esp-clang/esp-19.1.2_20250312/esp-clang/bin/clangd",
-  "clangd.arguments": [
-    "--background-index",
-    "--query-driver=**",
-    "--compile-commands-dir=/Volumes/disk1t/esp/meshtastic_firmware/build"
-  ],
-  "idf.port": "/dev/tty.usbmodem141201",
-  "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "clang",
   "C_Cpp_Runner.cppCompilerPath": "clang++",
   "C_Cpp_Runner.debuggerPath": "lldb",
   "C_Cpp_Runner.cStandard": "",
   "C_Cpp_Runner.cppStandard": "",
+  "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.useMsvc": false,
   "C_Cpp_Runner.warnings": [
     "-Wall",
@@ -71,10 +55,5 @@
   "C_Cpp_Runner.useLeakSanitizer": false,
   "C_Cpp_Runner.showCompilationTime": false,
   "C_Cpp_Runner.useLinkTimeOptimization": false,
-  "C_Cpp_Runner.msvcSecureNoWarnings": false,
-  "builder.serverUrl": "",
-  "builder.command": "",
-  "builder.runDevServer": false,
-  "builder.autoDetectDevServer": true,
-  "builder.launchType": "editor"
+  "C_Cpp_Runner.msvcSecureNoWarnings": false
 }

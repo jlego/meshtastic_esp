@@ -879,7 +879,7 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
     config.lora.fem_lna_mode = meshtastic_Config_LoRaConfig_FEM_LNA_Mode_NOT_PRESENT;
 #endif
 
-#if HAS_TFT // For the devices that support MUI, default to that
+#if HAS_TFT && !defined(ESPWATCH_S3LG) // For the devices that support MUI, default to that
     config.display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_COLOR;
 #endif
 
@@ -935,7 +935,8 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #endif
 
 #if defined(ESPWATCH_S3LG)
-    config.display.screen_on_secs = 15;
+    config.display.screen_on_secs = 5;
+    config.display.heading_bold = false;
     config.power.is_power_saving = true;
     config.power.wait_bluetooth_secs = 5;
     config.power.ls_secs = 3600;
@@ -1161,7 +1162,7 @@ void NodeDB::initConfigIntervals()
     config.power.wait_bluetooth_secs = 30;
 #elif defined(USE_POWERSAVE)
     config.power.is_power_saving = false;
-    config.display.screen_on_secs = 15;
+    config.display.screen_on_secs = 5;
     config.power.wait_bluetooth_secs = UINT32_MAX;
 #endif
 }
@@ -2219,7 +2220,8 @@ void NodeDB::loadFromDisk()
 #endif
 
 #if defined(ESPWATCH_S3LG)
-    config.display.screen_on_secs = 15;
+    config.display.screen_on_secs = 5;
+    config.display.heading_bold = false;
     config.power.is_power_saving = true;
     config.power.wait_bluetooth_secs = 30;
 #endif

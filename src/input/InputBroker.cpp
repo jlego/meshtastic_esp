@@ -119,17 +119,10 @@ int InputBroker::handleInputEvent(const InputEvent *event)
     }
 
 #if HAS_SCREEN
-#if defined(ESPWATCH_S3LG)
-    // For single-button devices, don't drop the event when waking from screen-off.
-    // The Screen handler will process the press (e.g. advance to next frame)
-    // while the PowerFSM is turning on the display in parallel.
-    (void)screenWasOff;
-#else
     if (screen && screenWasOff) {
         // If the screen was off, it is in the process of turning on, and we just drop the event
         return 0;
     }
-#endif
 #endif
 
 #ifdef MESHTASTIC_LOCKDOWN
@@ -340,18 +333,10 @@ void InputBroker::Init()
             BaseType_t higherWake = 0;
             concurrency::mainDelay.interruptFromISR(&higherWake);
         };
-#if defined(ESPWATCH_S3LG)
-        // Single-button device: short press = next page, long press = previous page
-        userConfig.singlePress = INPUT_BROKER_USER_PRESS;
-        userConfig.longPress = INPUT_BROKER_ALT_PRESS;
-        userConfig.longPressTime = 500;
-        userConfig.longLongPress = INPUT_BROKER_SHUTDOWN;
-#else
         userConfig.singlePress = INPUT_BROKER_USER_PRESS;
         userConfig.longPress = INPUT_BROKER_SELECT;
         userConfig.longPressTime = 500;
         userConfig.longLongPress = INPUT_BROKER_SHUTDOWN;
-#endif
         UserButtonThread->initButton(userConfig);
     } else
 #endif

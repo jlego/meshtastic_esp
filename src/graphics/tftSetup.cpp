@@ -1,4 +1,4 @@
-#if HAS_TFT
+#if HAS_TFT && defined(USE_PACKET_API)
 
 #include "SPILock.h"
 #include "sleep.h"
